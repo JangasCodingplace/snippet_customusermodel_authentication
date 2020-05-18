@@ -6,5 +6,9 @@ urlpatterns = [
     path(
         'auth/login',
         open_api.login,
-    )
+    ),
+    path(
+        'auth/create_user',
+        open_api.create_user,
+    ),
 ]

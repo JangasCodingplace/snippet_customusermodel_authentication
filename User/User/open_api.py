@@ -1,4 +1,5 @@
 import datetime
+from django.conf import settings
 from django.contrib import auth
 
 from rest_framework import request
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 
+from .models import User
 from .serializers import BaseUserSerializer
 
 @api_view(['POST',])
@@ -47,8 +49,54 @@ def login(request):
     response = Response(data, status=status.HTTP_202_ACCEPTED)
 
     # set session cookie
-    max_age = 365 * 24 * 60 * 60
-    expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=max_age)
+    max_age = int(settings.ENV['SESSION_COOKIE_VALIDATION_TIME'])
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=max_age)
+    response.set_cookie(
+        key='sessionid',
+        value=request.session.session_key,
+        expires=expires.strftime("%a, %d-%b-%Y %H:%M:%S UTC"),
+        httponly=True,
+        samesite='lax',
+        path='/'
+    )
+
+    return response
+
+@api_view(['POST',])
+def create_user(request):
+    required_props = [
+        'first_name',
+        'last_name',
+        'email',
+        'password'
+    ]
+    if [prop for prop in required_props if prop not in request.data]!=[]:
+        data = {
+            'err':'Missing request data'
+        }
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+    
+    if User.objects.filter(email=request.data['email']).exists():
+        data = {
+            'err':'User with that Email does already exist.'
+        }
+        return Response(data, status=status.HTTP_409_CONFLICT)
+    
+    user_serializer = BaseUserSerializer(data=request.data)
+    if user_serializer.is_valid(raise_exception=True):
+        new_user = user_serializer.save()
+    
+    auth.login(request._request, new_user)
+
+    data = {
+        'user':user_serializer.data
+    }
+
+    response = Response(data, status=status.HTTP_201_CREATED)
+
+    # set session cookie
+    max_age = int(settings.ENV['SESSION_COOKIE_VALIDATION_TIME'])
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=max_age)
     response.set_cookie(
         key='sessionid',
         value=request.session.session_key,
