@@ -65,3 +65,24 @@ class UserSerializer(serializers.ModelSerializer):
         )
         instance.save()
         return instance
+
+
+class ResetPWUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'password',
+        )
+        extra_kwargs = {
+            'password':{
+                'write_only':True,
+            },
+        }
+
+    def update(self, instance, validated_data):
+        """
+        Handles just PW Reset
+        """
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance

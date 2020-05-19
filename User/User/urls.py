@@ -14,6 +14,10 @@ urlpatterns = [
     ),
     path(
         '',
-        intern_api.ProfileGeneralAPI.as_view()
+        intern_api.ProfileGeneralAPI.as_view(),
+    ),
+    path(
+        'password',
+        intern_api.ProfilePasswordAPI.as_view(),
     )
 ]
