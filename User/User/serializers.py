@@ -48,6 +48,15 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active':{
                 'read_only':True
             },
+            'first_name':{
+                'required':False
+            },
+            'last_name':{
+                'required':False
+            },
+            'email':{
+                'required':False
+            },
         }
     
     def update(self, instance, validated_data):
@@ -67,15 +76,28 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ResetPWUserSerializer(serializers.ModelSerializer):
+class LoginUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            'first_name',
+            'last_name',
             'password',
+            'email'
         )
         extra_kwargs = {
             'password':{
                 'write_only':True,
+                'required':False
+            },
+            'email':{
+                'required':False,
+            },
+            'first_name':{
+                'read_only':True,
+            },
+            'last_name':{
+                'read_only':True,
             },
         }
 
@@ -83,6 +105,13 @@ class ResetPWUserSerializer(serializers.ModelSerializer):
         """
         Handles just PW Reset
         """
-        instance.set_password(validated_data['password'])
+        instance.email = validated_data.get(
+            'email',
+            instance.email
+        )
+
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
+
         instance.save()
         return instance

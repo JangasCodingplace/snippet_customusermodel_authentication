@@ -17,11 +17,15 @@ urlpatterns = [
         open_api.create_user,
     ),
     path(
+        'auth/reset_password',
+        open_api.reset_password,
+    ),
+    path(
         '',
         intern_api.ProfileGeneralAPI.as_view(),
     ),
     path(
-        'password',
-        intern_api.ProfilePasswordAPI.as_view(),
-    )
+        'authdata_change',
+        intern_api.ProfileLoginDataAPI.as_view(),
+    ),
 ]

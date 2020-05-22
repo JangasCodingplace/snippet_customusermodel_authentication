@@ -1,4 +1,7 @@
+import datetime
 from django.contrib import auth
+from django.conf import settings
+from django.contrib.auth import update_session_auth_hash
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .serializers import (
     UserSerializer,
-    ResetPWUserSerializer
+    LoginUserSerializer
 )
 
 class ProfileGeneralAPI(GenericAPIView):
@@ -58,23 +61,44 @@ class ProfileGeneralAPI(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class ProfilePasswordAPI(GenericAPIView):
+class ProfileLoginDataAPI(GenericAPIView):
     authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    serializer_class = ResetPWUserSerializer
+    serializer_class = LoginUserSerializer
 
-    def post(self, request):
-        if 'old_password' not in request.data or 'confirm_password' not in request.data:
+    def put(self, request):
+        if 'current_password' not in request.data:
             data = {
                 'err':'Invalid request data'
             }
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if 'new_password' in request.data:
+            if request.data['new_password'] != '':
+                """
+                password && email Change
+                """
+                if 'confirm_new_password' not in request.data:
+                    data = {
+                        'err':'Invalid request data'
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                
+                if request.data['new_password'] != request.data['confirm_new_password']:
+                    data = {
+                        'err':'Password do not match!'
+                    }
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                
+                request.data['password'] = request.data['new_password']
         
+
         user = auth.authenticate(
             request,
             email=request.user.email,
-            password=request.data['old_password']
+            password=request.data['current_password']
         )
 
         if user is None:
@@ -82,18 +106,31 @@ class ProfilePasswordAPI(GenericAPIView):
                 'err':'Wrong password'
             }
             return Response(data, status=status.HTTP_403_FORBIDDEN)
-        
-        if request.data['password'] != request.data['confirm_password']:
-            data = {
-                'err':'Passwords do not match'
-            }
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
         user_serializer = self.get_serializer(request.user, request.data)
         if user_serializer.is_valid(raise_exception=True):
             user = user_serializer.save()
+        
         data = {}
-        return Response(data, status=status.HTTP_200_OK)
+        if request.data['new_password'] == '':
+            return Response(data, status=status.HTTP_200_OK)
+
+        update_session_auth_hash(request._request, user)
+
+        response = Response(data, status=status.HTTP_200_OK)
+
+        max_age = int(settings.ENV['SESSION_COOKIE_VALIDATION_TIME'])
+        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=max_age)
+        response.set_cookie(
+            key='sessionid',
+            value=request.session.session_key,
+            expires=expires.strftime("%a, %d-%b-%Y %H:%M:%S UTC"),
+            httponly=True,
+            samesite='lax',
+            path='/'
+        )
+
+        return response
 
 
 class LogoutAPI(GenericAPIView):
