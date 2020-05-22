@@ -32,7 +32,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         Note: is_active property is always set per default.
         Remove is_active from extra_kwargs by setting it at this method.
         """
-        return User.objects.create(**validated_data)
+        return User.objects.create_user(**validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

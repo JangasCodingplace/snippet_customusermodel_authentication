@@ -9,6 +9,10 @@ urlpatterns = [
         open_api.login,
     ),
     path(
+        'auth/logout',
+        intern_api.LogoutAPI.as_view(),
+    ),
+    path(
         'auth/create_user',
         open_api.create_user,
     ),

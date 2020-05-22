@@ -94,3 +94,16 @@ class ProfilePasswordAPI(GenericAPIView):
             user = user_serializer.save()
         data = {}
         return Response(data, status=status.HTTP_200_OK)
+
+
+class LogoutAPI(GenericAPIView):
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        """
+        User Logout
+        """
+        auth.logout(request._request)
+        data = {}
+        return Response(data, status=status.HTTP_200_OK)

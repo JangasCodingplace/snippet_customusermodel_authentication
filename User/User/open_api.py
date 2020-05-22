@@ -13,10 +13,20 @@ from .serializers import BaseUserSerializer
 @api_view(['POST',])
 def login(request):
     if 'email' not in request.data or 'password' not in request.data:
+        if request.session.session_key is None:
+            data = {
+                'err':'Missing request data'
+            }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        print(request.session.session_key)
+        user_serializer = BaseUserSerializer(request.user)
+
         data = {
-            'err':'Missing request data'
+            'user':user_serializer.data
         }
-        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(data, status=status.HTTP_202_ACCEPTED)
 
 
     # # #
@@ -107,3 +117,13 @@ def create_user(request):
     )
 
     return response
+
+@api_view(['POST',])
+def reset_password(request):
+    if 'email' not in request.data:
+        data = {
+            'err':'Missing request data'
+        }
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({})
