@@ -55,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
                 'required':False
             },
             'email':{
-                'required':False
+                'read_only':True
             },
         }
     
@@ -68,22 +68,19 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             instance.last_name
         )
-        instance.email = validated_data.get(
-            'email',
-            instance.email
-        )
         instance.save()
         return instance
 
 
-class LoginUserSerializer(serializers.ModelSerializer):
+class AuthUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
             'first_name',
             'last_name',
             'password',
-            'email'
+            'email',
+            'is_active',
         )
         extra_kwargs = {
             'password':{
@@ -99,11 +96,14 @@ class LoginUserSerializer(serializers.ModelSerializer):
             'last_name':{
                 'read_only':True,
             },
+            'is_active':{
+                'read_only':True,
+            },
         }
 
     def update(self, instance, validated_data):
         """
-        Handles just PW Reset
+        Handles Email and PW Reset
         """
         instance.email = validated_data.get(
             'email',

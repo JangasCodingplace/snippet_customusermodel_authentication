@@ -19,7 +19,6 @@ def login(request):
             }
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
-        print(request.session.session_key)
         user_serializer = BaseUserSerializer(request.user)
 
         data = {
@@ -38,7 +37,7 @@ def login(request):
         password=request.data['password']
     )
 
-    if not user:
+    if user is None:
         data = {
             'err':'User does not exist or wrong password.'
         }

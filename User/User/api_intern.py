@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .serializers import (
     UserSerializer,
-    LoginUserSerializer
+    AuthUserSerializer
 )
 
 class ProfileGeneralAPI(GenericAPIView):
@@ -65,7 +65,7 @@ class ProfileLoginDataAPI(GenericAPIView):
     authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
 
-    serializer_class = LoginUserSerializer
+    serializer_class = AuthUserSerializer
 
     def put(self, request):
         if 'current_password' not in request.data:
