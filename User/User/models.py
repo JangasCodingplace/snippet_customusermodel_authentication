@@ -22,6 +22,10 @@ class UserManager(BaseUserManager):
             raise AttributeError('Users must have a first_name')
         if not last_name:
             raise AttributeError('Users must have an last_name')
+        if password is None:
+            raise AttributeError('Users must set a password')
+        if len(password) < 8:
+            raise ValueError('Password Length should be minimum 8')
 
         user = self.model(
             email=self.normalize_email(email),

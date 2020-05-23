@@ -1,31 +1,31 @@
 from django.urls import path
 
-from . import open_api
-from . import intern_api
+from . import api_extern
+from . import api_intern
 
 urlpatterns = [
     path(
         'auth/login',
-        open_api.login,
+        api_extern.login,
     ),
     path(
         'auth/logout',
-        intern_api.LogoutAPI.as_view(),
+        api_intern.LogoutAPI.as_view(),
     ),
     path(
         'auth/create_user',
-        open_api.create_user,
+        api_extern.create_user,
     ),
     path(
         'auth/reset_password',
-        open_api.reset_password,
+        api_extern.reset_password,
     ),
     path(
         '',
-        intern_api.ProfileGeneralAPI.as_view(),
+        api_intern.ProfileGeneralAPI.as_view(),
     ),
     path(
         'authdata_change',
-        intern_api.ProfileLoginDataAPI.as_view(),
+        api_intern.ProfileLoginDataAPI.as_view(),
     ),
 ]
